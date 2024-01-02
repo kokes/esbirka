@@ -1,9 +1,16 @@
 import gzip
 import io
 import json
+import logging
 import os
+import re
 from glob import glob
 from typing import Iterator
+from urllib.parse import urljoin, urlparse
+from urllib.request import urlopen
+
+BASE_URL = "https://opendata.eselpoint.cz/datove-sady-esbirka/"
+OUTDIR = "data"
 
 LIST_START = '"položky":['
 LIST_EMPTY = "[]"
@@ -46,23 +53,39 @@ def get_items(r: io.TextIOBase) -> Iterator[dict]:
 
 
 if __name__ == "__main__":
-    files = glob("data/*.jsonld.gz")
-    outdir = "out/"
-    os.makedirs(outdir, exist_ok=True)
+    logging.getLogger().setLevel(logging.INFO)
 
-    for file in glob(os.path.join(outdir, "*.tmp")):
+    with urlopen(BASE_URL) as r:
+        dt = r.read().decode("utf-8")
+
+    urls = re.findall(r"href=['\"](.+?\.gz)['\"]", dt)
+    assert len(urls) > 0
+    urls_json = [url for url in urls if url.endswith(".json.gz")]
+    urls_jsonld = [url for url in urls if url.endswith(".jsonld.gz")]
+    assert len(urls_json) == len(urls_jsonld)
+    assert len(urls_jsonld) > 0
+
+    os.makedirs(OUTDIR, exist_ok=True)
+    for file in glob(os.path.join(OUTDIR, "*.tmp")):
         os.remove(file)
 
-    for file in files:
-        outfile = os.path.join(outdir, os.path.basename(file))
+    for url in urls_json:
+        filename = os.path.basename(urlparse(url).path)
+        outfile = os.path.join(OUTDIR, filename)
         if os.path.exists(outfile):
             continue
         outfile_tmp = outfile + ".tmp"
 
-        print(file)
-        with gzip.open(file, "rt") as f, gzip.open(outfile_tmp, "wt") as fw:
+        url_full = urljoin(BASE_URL, url)
+        logging.info("Downloading %s", url_full)
+
+        with (
+            urlopen(url_full) as r,
+            gzip.open(r, "rt") as f,
+            gzip.open(outfile_tmp, "wt") as fw,
+        ):
             # classification files are messed up, their format is different
-            if "ciselnik" in file.lower():
+            if "ciselnik" in filename.lower():
                 items = json.load(f)["položky"]
             else:
                 items = get_items(f)
