@@ -2,16 +2,18 @@ import gzip
 import io
 import json
 import logging
+import multiprocessing as mp
 import os
 import re
 from glob import glob
+from itertools import islice
 from typing import Iterator
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlopen
-import multiprocessing as mp
 
 BASE_URL = "https://opendata.eselpoint.cz/datove-sady-esbirka/"
 OUTDIR = "data"
+PARTIAL_ENV = "PARTIAL"
 
 LIST_START = '"položky":['
 LIST_EMPTY = "[]"
@@ -75,6 +77,9 @@ def convert_from_url(url: str) -> tuple[str, int]:
             items = json.load(f)["položky"]
         else:
             items = get_items(f)
+
+        if os.environ.get(PARTIAL_ENV):
+            items = islice(items, 1000)
 
         for item in items:
             records += 1

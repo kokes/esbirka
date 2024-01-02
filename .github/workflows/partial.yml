@@ -1,0 +1,18 @@
+name: Daily run
+
+on:
+  workflow_dispatch:
+  # push:
+  # schedule:
+  # - cron:  '0 4 * * *'
+
+jobs:
+  scheduled:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - name: Check out this repo
+      uses: actions/checkout@v4
+    - name: Fetch latest data
+      run: |-
+        python3 od.py
