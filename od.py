@@ -8,6 +8,7 @@ from glob import glob
 from typing import Iterator
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlopen
+import multiprocessing as mp
 
 BASE_URL = "https://opendata.eselpoint.cz/datove-sady-esbirka/"
 OUTDIR = "data"
@@ -52,6 +53,38 @@ def get_items(r: io.TextIOBase) -> Iterator[dict]:
         raise ValueError("List not found")
 
 
+def convert_from_url(url: str) -> tuple[str, int]:
+    records = 0
+    filename = os.path.basename(urlparse(url).path)
+    outfile = os.path.join(OUTDIR, filename)
+    if os.path.exists(outfile):
+        return filename, -1
+
+    outfile_tmp = outfile + ".tmp"
+
+    url_full = urljoin(BASE_URL, url)
+    logging.info("Downloading %s", url_full)
+
+    with (
+        urlopen(url_full) as r,
+        gzip.open(r, "rt") as f,
+        gzip.open(outfile_tmp, "wt") as fw,
+    ):
+        # classification files are messed up, their format is different
+        if "ciselnik" in filename.lower():
+            items = json.load(f)["položky"]
+        else:
+            items = get_items(f)
+
+        for item in items:
+            records += 1
+            json.dump(item, fw, ensure_ascii=False)
+            fw.write("\n")
+
+    os.rename(outfile_tmp, outfile)
+    return filename, records
+
+
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
 
@@ -69,29 +102,7 @@ if __name__ == "__main__":
     for file in glob(os.path.join(OUTDIR, "*.tmp")):
         os.remove(file)
 
-    for url in urls_json:
-        filename = os.path.basename(urlparse(url).path)
-        outfile = os.path.join(OUTDIR, filename)
-        if os.path.exists(outfile):
-            continue
-        outfile_tmp = outfile + ".tmp"
-
-        url_full = urljoin(BASE_URL, url)
-        logging.info("Downloading %s", url_full)
-
-        with (
-            urlopen(url_full) as r,
-            gzip.open(r, "rt") as f,
-            gzip.open(outfile_tmp, "wt") as fw,
-        ):
-            # classification files are messed up, their format is different
-            if "ciselnik" in filename.lower():
-                items = json.load(f)["položky"]
-            else:
-                items = get_items(f)
-
-            for item in items:
-                json.dump(item, fw, ensure_ascii=False)
-                fw.write("\n")
-
-        os.rename(outfile_tmp, outfile)
+    ncpu = mp.cpu_count()
+    with mp.Pool(ncpu) as pool:
+        for filename, records in pool.imap_unordered(convert_from_url, urls_jsonld):
+            logging.info("%s: %d records", filename, records)
