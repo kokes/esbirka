@@ -15,4 +15,4 @@ jobs:
       uses: actions/checkout@v4
     - name: Fetch latest data
       run: |-
-        python3 od.py
+        python3 od.py --partial
