@@ -15,9 +15,7 @@ from typing import Iterator
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlopen
 
-ctx = ssl.create_default_context()
-ctx.check_hostname = False
-ctx.verify_mode = ssl.CERT_NONE
+ssl._create_default_https_context = ssl._create_unverified_context
 
 BASE_URL = "https://opendata.eselpoint.cz/datove-sady-esbirka/"
 OUTDIR = "data"
