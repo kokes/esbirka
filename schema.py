@@ -1,6 +1,11 @@
 import io
+import ssl
 from urllib.request import urlopen
 from zipfile import ZipFile
+
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
 
 OPENAPI_URL = (
     "https://opendata.eselpoint.cz/dokumentace/Definicni_soubor_REST_API_e-Sbirka.zip"
