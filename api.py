@@ -3,6 +3,7 @@ import gzip
 import os
 import json
 import sqlite3
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from dataclasses import dataclass
 
 DATA_DIR = "data"
@@ -31,6 +32,48 @@ datasets = [
         },
     ),
 ]
+
+
+@dataclass
+class Endpoint:
+    method: str
+    path: str
+    query: str
+
+
+endpoints = [
+    Endpoint(
+        "GET", "/sbirky", "SELECT zkratka, nazev, kod FROM ciselnik_sbirka ORDER BY id"
+    ),
+]
+
+endpointmap = {e.path: e for e in endpoints}
+
+
+class API(BaseHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        self.conn = sqlite3.connect("api.db")  # TODO: pass this in
+        super().__init__(*args, **kwargs)
+
+    def do_GET(self):
+        ep = endpointmap.get(self.path)
+        if not ep:
+            self.send_response(404)
+            self.end_headers()
+            return
+
+        c = self.conn.execute(ep.query)
+        rows = []
+        header = [d[0] for d in c.description]
+        for row in c:
+            rows.append(dict(zip(header, row)))
+        data = json.dumps({"seznam": rows}).encode("utf-8")
+
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+        self.wfile.write(data)
+
 
 if __name__ == "__main__":
     conn = sqlite3.connect("api.db")
@@ -66,3 +109,12 @@ if __name__ == "__main__":
                         f"INSERT INTO {dataset.table_name} ({keys}) VALUES ({values})",
                         list(row.values()),
                     )
+
+    print("Database created.")
+    for endpoint in endpoints:
+        print(f"{endpoint.method} {endpoint.path} {endpoint.query}")
+    print(f"Found {len(endpoints)} endpoints.")
+
+    print("Listening on http://localhost:8000")
+    httpd = ThreadingHTTPServer(("localhost", 8000), API)
+    httpd.serve_forever()

@@ -2,3 +2,5 @@
 /bkp
 /data/
 api.db
+__pycache__
+endpoints.txt
