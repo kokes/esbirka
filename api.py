@@ -31,6 +31,15 @@ datasets = [
             "název": ("nazev", str),
         },
     ),
+    Dataset(
+        "013CiselnikTypFragmentu.csv.gz",
+        "ciselnik_typ_fragmentu",
+        {  # TODO: vsechny ciselniky maj stejnej mapping (byt tady neni zkratka)
+            "id-esb": ("id", int),
+            "kód": ("kod", str),
+            "název": ("nazev", str),
+        },
+    ),
 ]
 
 
@@ -44,6 +53,11 @@ class Endpoint:
 endpoints = [
     Endpoint(
         "GET", "/sbirky", "SELECT zkratka, nazev, kod FROM ciselnik_sbirka ORDER BY id"
+    ),
+    Endpoint(
+        "GET",
+        "/typ-fragmentu",
+        "SELECT nazev, kod FROM ciselnik_typ_fragmentu ORDER BY kod COLLATE NOCASE",
     ),
 ]
 

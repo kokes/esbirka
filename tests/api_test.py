@@ -25,16 +25,22 @@ class TestAPI(TestCase):
         assert path.startswith("/"), path
         return f"http://{self.server.server_address[0]}:{self.server.server_port}{path}"
 
-    # TODO: parametrise this
-    def test_sbirky(self):
-        url = self.build_url("/sbirky")
-        with open("tests/responses/sbirky.json") as f:
-            expected = json.load(f)
+    def test_endpoint(self):
+        tests = [
+            ("/sbirky", "tests/responses/sbirky.json"),
+            ("/typ-fragmentu", "tests/responses/typ-fragmentu.json"),
+        ]
 
-        with urlopen(url) as f:
-            data = json.load(f)
+        for path, expected_fn in tests:
+            with self.subTest(path=path):
+                url = self.build_url(path)
+                with open(expected_fn) as f:
+                    expected = json.load(f)
 
-        self.assertEqual(data, expected)
+                with urlopen(url) as f:
+                    data = json.load(f)
+
+                self.assertEqual(data, expected)
 
 
 # GET /czechvoc-schemata-konceptu []
@@ -45,7 +51,6 @@ class TestAPI(TestCase):
 # GET /podtypyaktu []
 # GET /typy-aktu []
 # GET /typy-dokumentu []
-# GET /typy-fragmentu []
 # POST /czechvoc-jednoducha-vyhledavani []
 # POST /czechvoc-koncepty/asociace/dokumenty-sbirky []
 # POST /czechvoc-koncepty/vyskyty/dokumenty-sbirky []
