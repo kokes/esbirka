@@ -1,0 +1,34 @@
+{
+	"seznam": [
+		{
+			"zkratka": "Sb.",
+			"nazev": "Sbírka zákonů",
+			"kod": "sb"
+		},
+		{
+			"zkratka": "Sb. m. s.",
+			"nazev": "Sbírka mezinárodních smluv",
+			"kod": "sm"
+		},
+		{
+			"zkratka": "Ú. l.",
+			"nazev": "Úřední list",
+			"kod": "ul0"
+		},
+		{
+			"zkratka": "Ú. l. I",
+			"nazev": "Úřední list I",
+			"kod": "ul1"
+		},
+		{
+			"zkratka": "Ú. l. II",
+			"nazev": "Úřední list II",
+			"kod": "ul2"
+		},
+		{
+			"zkratka": "Úř. věst. čsl.",
+			"nazev": "Úřední věstník československý",
+			"kod": "vcs"
+		}
+	]
+}
