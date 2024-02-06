@@ -67,10 +67,12 @@ class API(BaseHTTPRequestHandler):
         header = [d[0] for d in c.description]
         for row in c:
             rows.append(dict(zip(header, row)))
-        data = json.dumps({"seznam": rows}).encode("utf-8")
+        data = json.dumps({"seznam": rows}, ensure_ascii=False).encode("utf-8")
 
         self.send_response(200)
         self.send_header("Content-type", "application/json")
+        self.send_header("Content-Length", len(data))
+        self.send_header("Content-Encoding", "utf-8")
         self.end_headers()
         self.wfile.write(data)
 
