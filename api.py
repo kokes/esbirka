@@ -38,6 +38,7 @@ if __name__ == "__main__":
         c = conn.cursor()
         for dataset in datasets:
             with gzip.open(os.path.join(DATA_DIR, dataset.filename), "rt") as f:
+                c.execute(f"DROP TABLE IF EXISTS {dataset.table_name}")
                 reader = csv.DictReader(f)  # TODO: validate header?
                 cols = ", ".join(
                     [
@@ -47,7 +48,6 @@ if __name__ == "__main__":
                 )
                 schema = f"CREATE TABLE IF NOT EXISTS {dataset.table_name} ({cols})"
                 c.execute(schema)
-                c.execute(f"DELETE FROM {dataset.table_name}")
                 for row in reader:
                     row = {
                         dataset.conv[k][0]: v
