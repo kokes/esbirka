@@ -26,6 +26,7 @@ class TestAPI(TestCase):
         return f"http://{self.server.server_address[0]}:{self.server.server_port}{path}"
 
     def test_endpoint(self):
+        # TODO: refreshni ty snapshoty nejak poloautomaticky
         tests = [
             ("/sbirky", "tests/responses/sbirky.json"),
             ("/typ-fragmentu", "tests/responses/typ-fragmentu.json"),
