@@ -1,4 +1,5 @@
 import io
+import os
 import ssl
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -17,3 +18,4 @@ if __name__ == "__main__":
             files = [j.filename for j in zf.filelist]
             assert files == ["daver.json"]
             zf.extract("daver.json", ".")
+            os.rename("daver.json", "openapi.json")
