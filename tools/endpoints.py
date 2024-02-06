@@ -15,6 +15,7 @@ if __name__ == "__main__":
                 responses.append(status)
             endpoints.append((method, path, responses, qparams))
 
+    endpoints.sort(key=lambda x: "{" not in x[1] and len(x[3]) == 0, reverse=True)
     print(f"Found {len(endpoints)} endpoints.")
     for method, path, responses, qparams in endpoints:
         print(f"{method.upper()} {path} {qparams}")
