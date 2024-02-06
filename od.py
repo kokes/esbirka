@@ -104,6 +104,10 @@ def convert_from_url(url: str, fmt: str, partial: bool) -> tuple[str, int]:
                     header = list(item.keys())
                     cw.writerow(header)
                 row = [item.get(h, "") for h in header]
+                row = [
+                    json.dumps(v, ensure_ascii=False) if isinstance(v, dict) else v
+                    for v in row
+                ]
                 cw.writerow(row)
 
                 # mame objektovy sloupec?
