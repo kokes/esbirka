@@ -1,7 +1,7 @@
 import json
 
 if __name__ == "__main__":
-    with open("daver.json") as f:
+    with open("openapi.json") as f:
         data = json.load(f)
 
     endpoints = []
